@@ -1,0 +1,52 @@
+---
+title: "Hezen Protective Group - Raid Results 9/25/17"
+output: html_notebook
+---
+
+
+```{r, echo = FALSE}
+library(jsonlite)
+library(tidyverse)
+library(ggthemes)
+
+raw <- read_json("https://pastebin.com/raw/HEH0AiK1")
+
+entries <- raw$Response$entries
+
+dfs <- lapply(entries, data.frame, stringsAsFactors = FALSE)
+
+dat <- bind_rows(dfs)
+
+cols <- as.data.frame(names(dat))
+
+
+dat1 <- dat[,c(7,8,10,16,20,22,24)]
+colnames(dat1) <- c('UserName','Class','Lvl','Assists','Deaths','Kills','KDR')
+dat1 <- mutate(dat1, KDAR = round((Kills+Assists)/Deaths,2))
+dat1$KDR <- round(dat1$KDR,2)
+dat2 <- gather(dat1, Stat, Value, 3:8)
+```
+
+```{r, echo = FALSE}
+p <- ggplot(filter(dat2, Stat %in% c('Kills','Assists','Deaths')), aes(x=UserName,y=Value,fill=Class)) + 
+  geom_bar(position = 'dodge', stat = 'identity') + 
+  facet_wrap(~Stat, scales = 'free') + 
+  theme_fivethirtyeight() + 
+  scale_fill_fivethirtyeight() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+p
+
+p2 <- ggplot(filter(dat2, !Stat %in% c('Kills','Assists','Deaths')), aes(x=UserName,y=Value,fill=Class)) + 
+  geom_bar(position = 'dodge', stat = 'identity') + 
+  facet_wrap(~Stat, scales = 'free') + 
+  theme_fivethirtyeight() + 
+  scale_fill_fivethirtyeight() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+p2
+
+
+
+```
+
